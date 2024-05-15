@@ -22,7 +22,7 @@ Instructions for setting up the project locally.
 
 1. Clone this repository:
 ```sh
-git clone
+git clone https://github.com/NikiPOU/Art-App.git
 ```
 2. Navigate to the project directory:
 ```sh
