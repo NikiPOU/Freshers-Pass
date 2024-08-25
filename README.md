@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Art App
 The Art App is designed to provide an unbiased platform for artists to share their in sight art to spectators.
 In sight art refers to art that is either physical, or performative art taking place in the physical environment.
@@ -57,3 +58,7 @@ flask run
 
 ## Contact
 For any inquiries please contact niki.pouladi@helsinki.fi.
+=======
+# Freshers-Pass
+App made for Tsoha and to be used by the 2024 bsc freshers.
+>>>>>>> c0433dfa1f1138dfd2ce9712db9a264fa790c368
