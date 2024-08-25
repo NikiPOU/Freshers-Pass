@@ -8,72 +8,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #333;
-        }
-
-        .container {
-            display: flex;
-            justify-content: space-between;
-            /*align-items: center; */
-            width: 100%;
-        }
-
-        .left {
-            flex: 1;
-        }
-
-        .center {
-            flex: 1;
-            text-align: center;
-            position: relative;
-        }
-
-        .right {
-            flex: 1;
-        }
-
         #map {
             height: 400px;
             width: 100%;
         }
 
-        form {
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        form input[type="text"] {
-            width: 100%;
-            max-width: 300px;
-            padding: 5px;
-        }
-
-        .right a {
-            margin-left: 10px;
-        }
-
-        main {
-            padding: 20px;
-        }
-
-/*HOW DO I GET THE CURSOR TO STOP ONCE TEXT IS WRITTEN AND NOT TRAVEL ALL THE WAY TO THE RIGHT....*/
         #dynamic-text-container {
             
-            overflow: hidden; /* Ensures the content is not revealed until the animation */
-            border-right: .15em solid orange; /* The typwriter cursor */
-            white-space: nowrap; /* Keeps the content on a single line */
-            margin: 0 auto; /* Gives that scrolling effect as the typing happens */
-            letter-spacing: .15em; /* Adjust as needed */
+            overflow: hidden;
+            border-right: .15em solid orange;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
             animation: 
                 typing 3.5s steps(30, end),
                 blink-caret .5s step-end infinite;
@@ -96,16 +42,26 @@
     <header>
         <div class="container">
             <div class="left">
-                <form action="{{ url_for('find_creator') }}" method="GET">
-                    <input type="text" name="query" placeholder="Find Creator">
+                <form action="{{ url_for('search') }}" method="GET">
+                    <input type="text" name="query" placeholder="Search for artists">
                 </form>
             </div>
             <div class="center">
                 <h1>Art App</h1>
             </div>
             <div class="right">
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('signup') }}">Sign Up</a>
+                <a href="{{ url_for('map') }}">Map</a>
+                {% if session.get('username') %}
+                    {% if session.get('role') == 'artist' %}
+                        <a href="{{ url_for('post') }}">Post</a>
+                    {% endif %}
+                    <a href="{{ url_for('index') }}">Feed</a>
+                    <a href="{{ url_for('profile') }}">{{ session.get('username') }}</a>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -115,7 +71,6 @@
         <div id="map"></div>
     </main>
 
-    <!-- Include Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -124,13 +79,7 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-/* REMOVE MARKER
-            var marker = L.marker([60.1695, 24.9354]).addTo(map)
-                .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-                .openPopup();
-                */
         });
     </script>
 </body>
-
 </html>

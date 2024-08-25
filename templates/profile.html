@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art App - My Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="{{ url_for('index') }}">Art App</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('map') }}">Map</a></li>
+                {% if session.get('username') %}
+                    <li><a href="{{ url_for('profile') }}">{{ session.get('username') }}</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>My Profile</h1>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Gender:</strong> {{ user.gender }}</p>
+        <p><strong>Date of Birth:</strong> {{ user.date_of_birth }}</p>
+    </main>
+
+    <footer>
+        <!-- Your footer content -->
+    </footer>
+</body>
+</html>

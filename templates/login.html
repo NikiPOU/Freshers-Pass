@@ -1,16 +1,40 @@
-{% if session.username %}
+<!DOCTYPE html>
+<html lang="en">
 
-<p>Olet kirjautunut nimellä {{ session.username }}</p>
-<a href="/logout">Kirjaudu ulos</a>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
 
-{% else %}
+<body>
+    <header>
+        <div class="container">
+            <div class="center">
+                <a href="{{ url_for('index') }}" style="text-decoration: none; color: white;">
+                  <h1>Art App</h1>
+              </a>
+            </div>
+            <div class="right">
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('signup') }}">Sign Up</a>
+            </div>
+        </div>
+    </header>
 
-<form action="/login" method="POST">
-<p>Tunnus:<br>
-<input type="text" name="username"></p>
-<p>Salasana:<br>
-<input type="password" name="password"></p>
-<input type="submit" value="Kirjaudu">
-</form>
+    <main>
+        <form action="{{ url_for('login') }}" method="POST">
+            <h1>Login</h1>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
 
-{% endif %}
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+    </main>
+</body>
+
+</html>

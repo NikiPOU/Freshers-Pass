@@ -1,0 +1,60 @@
+<!-- artist_profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Profile - {{ artist.username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}"> <!-- Example: Link your CSS file -->
+</head>
+<body>
+    <header>
+        <!-- Your header content -->
+        <div class="container">
+            <div class="left">
+                <form action="{{ url_for('find_creator') }}" method="GET">
+                    <input type="text" name="query" placeholder="Find Creator">
+                </form>
+            </div>
+            <div class="center">
+                <h1>Art App</h1>
+            </div>
+            <div class="right">
+                <a href="{{ url_for('map') }}">Map</a>
+                {% if session.get('username') %}
+                    {% if session.get('role') == 'artist' %}
+                        <a href="{{ url_for('post') }}">Post</a>
+                    {% endif %}
+                    <a href="{{ url_for('index') }}">Feed</a>
+                    <a href="{{ url_for('profile') }}">{{ session.get('username') }}</a>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Artist Profile - {{ artist.username }}</h1>
+        <h2>{{ artist.first_name }} {{ artist.last_name }}</h2>
+
+        <!-- Display most recent posts -->
+        <h3>Most Recent Posts:</h3>
+        <ul>
+            {% for post in artist.posts %}
+                <li>{{ post.title }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Follow option -->
+        <button>Follow</button>
+        <p>{{ followers_count }} people are following {{ artist.username }}</p>
+    </main>
+
+    <footer>
+        <!-- Your footer content -->
+    </footer>
+</body>
+</html>
