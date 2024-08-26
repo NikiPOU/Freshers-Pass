@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Choose Tutor Group</title>
+    <style>
+        .tutor-group-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Adjust depending on how many columns you want */
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .tutor-group-box {
+            border: 2px solid #ccc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .tutor-group-box:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .tutor-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .tutor-names {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .tutor-group-box input[type="radio"] {
+            display: none;
+        }
+        .tutor-group-box.selected {
+            background-color: #d0f0d0;
+            border-color: #80c080;
+        }
+    </style>
+    <script>
+        function selectGroup(groupId) {
+            const boxes = document.querySelectorAll('.tutor-group-box');
+            boxes.forEach(box => box.classList.remove('selected'));
+            
+            const selectedBox = document.getElementById('group-' + groupId);
+            selectedBox.classList.add('selected');

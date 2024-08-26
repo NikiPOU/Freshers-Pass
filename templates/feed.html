@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed</title>
+</head>
+<body>
+    <h1>Challenge Feed</h1>
+
+    {% for challenge in challenges %}
+        <div class="challenge">
+            <h2>{{ challenge.title }}</h2>
+            <p>{{ challenge.content }}</p>
+            <p>Status: {{ challenge.status }}</p>
+            
+            {% if session.role == 'fresher' and challenge.status == 'available' %}
+                <form method="POST" action="{{ url_for('mark_challenge_complete') }}">
+                    <input type="hidden" name="challenge_id" value="{{ challenge.id }}">
+                    <button type="submit">Mark as Complete</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+    
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

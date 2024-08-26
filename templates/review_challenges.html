@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Review Challenges</title>
+</head>
+<body>
+    <h1>Review Pending Challenges</h1>
+
+    {% for challenge in pending_challenges %}
+        <div class="challenge">
+            <h2>{{ challenge.title }}</h2>
+            <p>{{ challenge.content }}</p>
+            <p>Status: {{ challenge.status }}</p>
+            
+            <form method="POST" action="{{ url_for('update_challenge_status') }}">
+                <input type="hidden" name="challenge_id" value="{{ challenge.id }}">
+                <label for="points_awarded">Points:</label>
+                <input type="number" id="points_awarded" name="points_awarded" min="0" value="0">
+                <button type="submit" name="action" value="accept">Accept</button>
+                <button type="submit" name="action" value="deny">Deny</button>
+            </form>
+        </div>
+    {% endfor %}
+    
+    <a href="{{ url_for('feed') }}">Back to Feed</a>
+</body>
+</html>
