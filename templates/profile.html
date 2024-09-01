@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Integralis Freshers Pass</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="left"></div>
+            <div class="center">
+                <h1>Integralis Freshers Pass</h1>
+            </div>
+            <div class="right">
+                <a href="{{ url_for('feed') }}">Challenges</a>
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('logout') }}">Log Out</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="profile-card">
+            <h2>Profile Information</h2>
+            <p><strong>Username:</strong> {{ user[0] }}</p>
+            <p><strong>First Name:</strong> {{ user[1] }}</p>
+            <p><strong>Last Name:</strong> {{ user[2] }}</p>
+            <p><strong>Email:</strong> {{ user[3] }}</p>
+
+            {% if role == 'fresher' %}
+                <p><strong>Total Points:</strong> {{ user[4] }}</p>
+                <p><strong>Completed Challenges:</strong> {{ user[5] }}</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

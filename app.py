@@ -1,12 +1,24 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 import psycopg2
-from psycopg2 import sql
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from os import getenv
+from flask_mail import Mail, Message
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
+
+app.secret_key = 'nikiniki'
+
+app.config['MAIL_SERVER'] = 'smtp.office365.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'pass_integralis@hotmail.com'
+app.config['MAIL_PASSWORD'] = 'integralispass1000'
+app.config['MAIL_DEFAULT_SENDER'] = 'pass_integralis@hotmail.com'
+
+mail = Mail(app)
 
 def get_db_connection():
     return psycopg2.connect(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -33,7 +45,7 @@ if not os.path.exists('db_initialized.txt'):
 def execute_query(sql, params=None):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute(sql, params or {})
+    cur.execute(sql, params or ())
     result = cur.fetchall()
     cur.close()
     conn.close()
@@ -42,10 +54,11 @@ def execute_query(sql, params=None):
 def execute_modify(sql, params=None):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute(sql, params or {})
+    cur.execute(sql, params or ())
     conn.commit()
     cur.close()
     conn.close()
+
 
 @app.route("/")
 def index():
@@ -59,22 +72,29 @@ def signup():
         email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        tutor_group_id = request.form['tutor_group_id']
         
         hashed_password = generate_password_hash(password)
         
         sql = """
-        INSERT INTO user_profile (username, password, email, first_name, last_name)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO fresher_profile (username, password, email, first_name, last_name, tutor_group_id)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
         
-        params = (username, hashed_password, email, first_name, last_name)
+        params = (username, hashed_password, email, first_name, last_name, tutor_group_id)
         
         try:
             execute_modify(sql, params)
 
             session['username'] = username
             flash('User created successfully!', 'success')
-            return redirect(url_for('index'))
+            msg = Message("Welcome to Our Service!",
+                sender="your_email@gmail.com",
+                recipients=[email])
+            msg.body = f"Hello {first_name},\n\nYour account has been successfully created.\n\nBest Regards,\nIntegralis"
+            mail.send(msg)
+
+            return redirect(url_for('feed'))
         
         except Exception as e:
             flash(f'Error: {str(e)}', 'error')
@@ -82,7 +102,36 @@ def signup():
     
     return render_template('signup.html')
 
+@app.route('/tutorsignup', methods=['GET', 'POST'])
+def tutorsignup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        tutor_group_id = request.form['tutor_group_id']
+        
+        hashed_password = generate_password_hash(password)
+        
+        sql = """
+        INSERT INTO tutor_profile (username, password, email, first_name, last_name, tutor_group_id)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        
+        params = (username, hashed_password, email, first_name, last_name, tutor_group_id)
+        
+        try:
+            execute_modify(sql, params)
 
+            session['username'] = username
+            return redirect(url_for('feed'))
+        
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('tutorsignup'))
+    
+    return render_template('signup_tutor.html')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -90,18 +139,26 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        sql = "SELECT password, role FROM user_profile WHERE username = :username"
-        result = execute_query(sql, {"username": username}).fetchone()
+        fresher_sql = "SELECT password, 'fresher' as role FROM fresher_profile WHERE username = %s"
+        fresher_info = execute_query(fresher_sql, (username,))
 
-        if result is not None and check_password_hash(result[0], password):
+        if fresher_info and check_password_hash(fresher_info[0][0], password):
             session["username"] = username
-            session["role"] = result[1]
-            return redirect(url_for('index'))
-        else:
-            flash("Invalid username or password.", "error")
-            return redirect(url_for('login'))  # Redirect to login page on failed login
-    else:
-        return render_template('login.html')
+            session["role"] = 'fresher'
+            return redirect(url_for('feed'))
+
+        tutor_sql = "SELECT password, 'tutor' as role FROM tutor_profile WHERE username = %s"
+        tutor_info = execute_query(tutor_sql, (username,))
+
+        if tutor_info and check_password_hash(tutor_info[0][0], password):
+            session["username"] = username
+            session["role"] = 'tutor'
+            return redirect(url_for('feed'))
+
+        flash("Invalid username or password.", "error")
+        return redirect(url_for('login'))
+
+    return render_template('login.html')
 
 
 @app.route("/logout")
@@ -110,19 +167,127 @@ def logout():
     session.pop("role", None)
     return redirect(url_for('index'))
 
-
 @app.route("/profile")
 def profile():
+    username = session.get('username')
+    role = session.get('role')
 
-    username = session['username']
-    sql = "SELECT username, first_name, last_name, role FROM user_profile WHERE username = :username"
-    user_data = execute_query(sql, {'username': username}).fetchone()
+    if not username:
+        return redirect(url_for('index'))
+
+    if role == 'fresher':
+        sql = """SELECT username, first_name, last_name, email, points, (SELECT COUNT(*) FROM challenge_completion WHERE fresher_id = id) as completed_challenges FROM fresher_profile WHERE username = %s"""
+        user_data = execute_query(sql, (username,))
+        if not user_data:
+            return redirect(url_for('index'))
+        
+        user_info = user_data[0]
+        return render_template('profile.html', user=user_info, role=role)
     
-    return render_template('profile.html', user=user_data)
+    elif role == 'tutor':
+        sql = """SELECT username, first_name, last_name, email FROM tutor_profile WHERE username = %s"""
+        user_data = execute_query(sql, (username,))
+        if user_data:
+            user_info = user_data[0]
+            return render_template('profile.html', user=user_info, role=role)
+        else:
+            return redirect(url_for('index'))
+    else:
+        flash("Invalid user role.", "error")
+        return redirect(url_for('index'))
+
+    
+@app.route('/feed')
+def feed():
+    sql = "SELECT * FROM challenge_post ORDER BY created_at DESC"
+    posts = execute_query(sql)
+
+    freshers = []
+
+    if 'role' in session:
+        role = session['role']
+        username = session.get('username')
+
+        if role == 'tutor':
+            tutor_group_id_sql = "SELECT tutor_group_id FROM tutor_profile WHERE username = %s"
+            tutor_group_id = execute_query(tutor_group_id_sql, (username,))[0][0]
+
+            freshers_sql = "SELECT username FROM fresher_profile WHERE tutor_group_id = %s"
+            freshers = execute_query(freshers_sql, (tutor_group_id,))
+            freshers = [{'username': fresher[0]} for fresher in freshers]
+
+        elif role == 'fresher':
+            pass
+
+    return render_template('feed.html', posts=posts, freshers=freshers)
 
 
+
+
+@app.route('/challenge/create', methods=['GET', 'POST'])
+def create_challenge():
+    if 'role' not in session or session['role'] != 'tutor':
+        flash('Unauthorized access.', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        deadline = request.form['deadline']
+        points_awarded = request.form['points_awarded']
+
+        sql = """INSERT INTO challenge_post (title, content, deadline, points_awarded)
+        VALUES (%s, %s, %s, %s)"""
+        params = (title, content, deadline, points_awarded)
+
+        try:
+            execute_modify(sql, params)
+            return redirect(url_for('feed'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'error')
+            return redirect(url_for('create_challenge'))
+    
+    return render_template('create_challenge.html')
+
+@app.route('/challenge/mark_complete', methods=['POST'])
+def mark_challenge_complete():
+    if 'role' not in session or session['role'] != 'tutor':
+        return redirect(url_for('index'))
+    
+    challenge_id = request.form.get('challenge_id')
+    fresher_username = request.form.get('fresher_username')
+    
+    if not challenge_id or not fresher_username:
+        return redirect(url_for('feed'))
+
+    fresher_id = get_fresher_id(fresher_username)
+    if not fresher_id:
+        return redirect(url_for('feed'))
+    
+    completion_check_sql = """SELECT * FROM challenge_completion WHERE fresher_id = %s AND challenge_id = %s"""
+    existing_completion = execute_query(completion_check_sql, (fresher_id, challenge_id))
+
+    if existing_completion:
+        return redirect(url_for('feed'))
+
+    sql = """INSERT INTO challenge_completion (fresher_id, challenge_id) VALUES (%s, %s)"""
+    params = (fresher_id, challenge_id)
+
+    try:
+        execute_modify(sql, params)
+        
+        update_fresher_sql = """UPDATE fresher_profile SET completed_challenges = COALESCE(completed_challenges || ',', '') || %s WHERE id = %s"""
+        execute_modify(update_fresher_sql, (challenge_id, fresher_id))
+
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+
+    return redirect(url_for('feed'))
+
+def get_fresher_id(username):
+    sql = "SELECT id FROM fresher_profile WHERE username = %s"
+    result = execute_query(sql, (username,))
+    return result[0][0] if result else None
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-

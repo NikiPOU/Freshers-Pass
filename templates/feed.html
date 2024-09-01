@@ -2,26 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .challenge-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            margin: 10px auto;
+            max-width: 600px;
+            text-align: left;
+            color: #333;
+        }
+
+        .challenge-card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .challenge-card p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .challenge-card .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .challenge-card .btn:hover {
+            background-color: #0056b3;
+        }
+        
+    </style>
 </head>
 <body>
-    <h1>Challenge Feed</h1>
-
-    {% for challenge in challenges %}
-        <div class="challenge">
-            <h2>{{ challenge.title }}</h2>
-            <p>{{ challenge.content }}</p>
-            <p>Status: {{ challenge.status }}</p>
-            
-            {% if session.role == 'fresher' and challenge.status == 'available' %}
-                <form method="POST" action="{{ url_for('mark_challenge_complete') }}">
-                    <input type="hidden" name="challenge_id" value="{{ challenge.id }}">
-                    <button type="submit">Mark as Complete</button>
-                </form>
+    <header>
+        <div class="container">
+            <div class="left"></div>
+            <div class="center">
+                <h1>Integralis Freshers Pass</h1>
+            </div>
+            <div class="right">
+                {% if session.get('username') %}
+                    <a href="{{ url_for('feed') }}">Challenges</a>
+                    <a href="{{ url_for('profile') }}">Profile</a>
+                    <a href="{{ url_for('logout') }}">Log Out</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="create-challenge">
+            {% if session.get('role') == 'tutor' %}
+                <a href="{{ url_for('create_challenge') }}" class="btn">Create New Challenge</a>
             {% endif %}
         </div>
-    {% endfor %}
-    
-    <a href="{{ url_for('index') }}">Back to Home</a>
+        <div class="feed">
+            {% for post in posts %}
+                <div class="challenge-card">
+                    <h2>{{ post[1] }}</h2>
+                    <p>{{ post[2] }}</p>
+                    <p><strong>Deadline:</strong> {{ post[3] }}</p>
+                    <p><strong>Points Awarded:</strong> {{ post[6] }}</p>
+                    <p><strong>Status:</strong> {{ post[5] }}</p>
+                    
+                    {% if session.get('role') == 'tutor' %}
+                        {% if post[5] == 'incomplete' %}
+                            <form action="{{ url_for('mark_challenge_complete') }}" method="POST">
+                                <input type="hidden" name="challenge_id" value="{{ post[0] }}">
+                                <label for="fresher_username_{{ post[0] }}">Mark Complete for:</label>
+                                <select name="fresher_username" id="fresher_username_{{ post[0] }}" required>
+                                    {% for fresher in freshers %}
+                                        <option value="{{ fresher.username }}">{{ fresher.username }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn">Mark Challenge Complete</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </main>
 </body>
 </html>

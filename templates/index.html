@@ -4,28 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freshers Pass</title>
+    <title>Integralis Freshers Pass</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
     <header>
         <div class="container">
             <div class="left">
- 
             </div>
             <div class="center">
                 <h1>Integralis Freshers Pass</h1>
             </div>
             <div class="right">
- 
-                <a href="#">Spectator</a>
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% if session.get('username') %}
+                    <a href="{{ url_for('feed') }}">Challenges</a>
+                    <a href="{{ url_for('profile') }}">Profile</a>
+                    <a href="{{ url_for('logout') }}">Log Out</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
             </div>
         </div>
     </header>
-
 </body>
-
 </html>

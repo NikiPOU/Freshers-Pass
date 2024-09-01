@@ -4,60 +4,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Integralis Freshers Pass</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-  <header>
-    <div class="container">
-        <div class="left">
-
+    <header>
+        <div class="container">
+            <div class="left"></div>
+            <div class="center">
+                <h1>Integralis Freshers Pass</h1>
+            </div>
+            <div class="right">
+                {% if session.get('username') %}
+                    <a href="{{ url_for('feed') }}">Challenges</a>
+                    <a href="{{ url_for('profile') }}">Profile</a>
+                    <a href="{{ url_for('logout') }}">Log Out</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('signup') }}">Sign Up</a>
+                {% endif %}
+            </div>
         </div>
-        <div class="center">
-            <h1>Integralis Freshers Pass</h1>
-        </div>
-        <div class="right">
+    </header>
+    <main>
+        <form action="{{ url_for('signup') }}" method="POST" class="signup-form">
+            <h1>Sign Up</h1>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
 
-            <a href="#">Spectator</a>
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('signup') }}">Sign Up</a>
-        </div>
-    </div>
-</header>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
 
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
 
-<main>
-  <form action="{{ url_for('signup') }}" method="POST" class="signup-form">
-      <h1>Sign Up</h1>
-      <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="text" id="username" name="username" required>
-      </div>
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
 
-      <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" name="password" required>
-      </div>
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
 
-      <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" id="email" name="email" required>
-      </div>
-
-      <div class="form-group">
-          <label for="first_name">First Name:</label>
-          <input type="text" id="first_name" name="first_name" required>
-      </div>
-
-      <div class="form-group">
-          <label for="last_name">Last Name:</label>
-          <input type="text" id="last_name" name="last_name" required>
-      </div>
-
-      <button type="submit">Sign Up</button>
-  </form>
-</main>
+            <div class="form-group">
+                <label for="tutor_group_id">Tutor Group:</label>
+                <select id="tutor_group_id" name="tutor_group_id" required>
+                    <option value="">--Select Your Tutor Group--</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">7</option>
+                    <option value="9">7</option>
+                    <option value="10">7</option>
+                </select>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+    </main>
 </body>
-
 </html>

@@ -19,10 +19,17 @@ header {
   margin: 0 auto;
 }
 
-.left, .center, .right {
+.left, .right {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+
+.center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .right a {
