@@ -1,5 +1,5 @@
 # Freshers Pass
-The Freshers Pass is designed for BSc freshers starting in 2024 as a fun way to encourage them to attend more events and engage actively.
+The Freshers Pass is a prototype freshers pass designed for BSc freshers starting in 2024 as a fun way to encourage them to attend more events and engage actively.
 The pass supports two types of users: tutors and freshers. Tutors can create challenges and award points based on these challenges. They can mark challenges as completed only for freshers within their group.
 For freshers, the goal is to accumulate as many points as possible, and the pass is designed to track their progress.
 
