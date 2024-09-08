@@ -39,7 +39,7 @@ flask run
 ```
 
 ## User usage: Fresher
-- Register fresher account via "Sign Up".
+- Register fresher account via "Sign Up", and receive email confirmation.
 - Complete fresher profile.
 - View available challenges through feed.
 - View your own profile/points.
@@ -49,6 +49,7 @@ flask run
 - Complete tutor profile.
 - View & create challanges through feed.
 - View your own profile.
-- 
+- Authorization to mark challanges as completed for freshers in own (tutor) group.
+  
 ## Contact
 For any inquiries please contact niki.pouladi@helsinki.fi.
