@@ -11,7 +11,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 
 app.secret_key = 'nikiniki'
 
-app.config['MAIL_SERVER'] = 'smtp.office365.com'
+app.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'pass_integralis@hotmail.com'
@@ -83,24 +83,25 @@ def signup():
         
         params = (username, hashed_password, email, first_name, last_name, tutor_group_id)
         
-        try:
-            execute_modify(sql, params)
+        execute_modify(sql, params)
 
-            session['username'] = username
-            flash('User created successfully!', 'success')
-            msg = Message("Welcome to Our Service!",
-                sender="your_email@gmail.com",
-                recipients=[email])
-            msg.body = f"Hello {first_name},\n\nYour account has been successfully created.\n\nBest Regards,\nIntegralis"
-            mail.send(msg)
+        session.pop('username', None)
+        session.pop('role', None)
 
-            return redirect(url_for('feed'))
+        flash('User created successfully! Please log in again.', 'success')
         
-        except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
-            return redirect(url_for('signup'))
-    
+        msg = Message("Welcome to Integralis Pass!",
+            sender="pass_integralis@hotmail.com",
+            recipients=[email])
+        msg.body = f"Hello {first_name},\n\nYour account has been successfully created.\n\nBest Regards,\nIntegralis"
+        mail.send(msg)
+
+        return redirect(url_for('login'))
+
     return render_template('signup.html')
+
+
+
 
 @app.route('/tutorsignup', methods=['GET', 'POST'])
 def tutorsignup():
@@ -176,7 +177,12 @@ def profile():
         return redirect(url_for('index'))
 
     if role == 'fresher':
-        sql = """SELECT username, first_name, last_name, email, points, (SELECT COUNT(*) FROM challenge_completion WHERE fresher_id = id) as completed_challenges FROM fresher_profile WHERE username = %s"""
+        sql = """
+        SELECT username, first_name, last_name, email, points, 
+        (SELECT COUNT(*) FROM challenge_completion WHERE fresher_id = fresher_profile.id) as completed_challenges
+        FROM fresher_profile 
+        WHERE username = %s
+        """
         user_data = execute_query(sql, (username,))
         if not user_data:
             return redirect(url_for('index'))
@@ -196,6 +202,7 @@ def profile():
         flash("Invalid user role.", "error")
         return redirect(url_for('index'))
 
+
     
 @app.route('/feed')
 def feed():
@@ -203,24 +210,43 @@ def feed():
     posts = execute_query(sql)
 
     freshers = []
+    completed_challenges = set()
+    fresher_completions = {}
 
-    if 'role' in session:
-        role = session['role']
+    if 'role' in session and session['role'] == 'fresher':
         username = session.get('username')
 
-        if role == 'tutor':
-            tutor_group_id_sql = "SELECT tutor_group_id FROM tutor_profile WHERE username = %s"
-            tutor_group_id = execute_query(tutor_group_id_sql, (username,))[0][0]
+        fresher_id = get_fresher_id(username)
 
-            freshers_sql = "SELECT username FROM fresher_profile WHERE tutor_group_id = %s"
-            freshers = execute_query(freshers_sql, (tutor_group_id,))
-            freshers = [{'username': fresher[0]} for fresher in freshers]
+        completed_challenges_sql = """
+        SELECT challenge_id
+        FROM challenge_completion
+        WHERE fresher_id = %s
+        """
+        completed_challenges_data = execute_query(completed_challenges_sql, (fresher_id,))
+        completed_challenges = {row[0] for row in completed_challenges_data}
 
-        elif role == 'fresher':
-            pass
+        fresher_completions = {post[0]: 'complete' if post[0] in completed_challenges else 'incomplete' for post in posts}
 
-    return render_template('feed.html', posts=posts, freshers=freshers)
+    if 'role' in session and session['role'] == 'tutor':
+        username = session.get('username')
 
+        tutor_group_id_sql = "SELECT tutor_group_id FROM tutor_profile WHERE username = %s"
+        tutor_group_id = execute_query(tutor_group_id_sql, (username,))[0][0]
+
+        freshers_sql = "SELECT id, username FROM fresher_profile WHERE tutor_group_id = %s"
+        freshers_data = execute_query(freshers_sql, (tutor_group_id,))
+        freshers = [{'id': fresher[0], 'username': fresher[1]} for fresher in freshers_data]
+
+        completed_challenges_sql = """
+        SELECT fresher_id, challenge_id
+        FROM challenge_completion
+        WHERE fresher_id IN (SELECT id FROM fresher_profile WHERE tutor_group_id = %s)
+        """
+        completed_challenges_data = execute_query(completed_challenges_sql, (tutor_group_id,))
+        completed_challenges = {(row[0], row[1]) for row in completed_challenges_data}
+
+    return render_template('feed.html', posts=posts, freshers=freshers, completed_challenges=completed_challenges, fresher_completions=fresher_completions)
 
 
 
@@ -249,39 +275,40 @@ def create_challenge():
     
     return render_template('create_challenge.html')
 
+
 @app.route('/challenge/mark_complete', methods=['POST'])
 def mark_challenge_complete():
     if 'role' not in session or session['role'] != 'tutor':
         return redirect(url_for('index'))
-    
+
     challenge_id = request.form.get('challenge_id')
     fresher_username = request.form.get('fresher_username')
-    
+
     if not challenge_id or not fresher_username:
         return redirect(url_for('feed'))
 
     fresher_id = get_fresher_id(fresher_username)
     if not fresher_id:
         return redirect(url_for('feed'))
-    
+
     completion_check_sql = """SELECT * FROM challenge_completion WHERE fresher_id = %s AND challenge_id = %s"""
     existing_completion = execute_query(completion_check_sql, (fresher_id, challenge_id))
 
     if existing_completion:
+        flash("Challenge already completed for this fresher.", "info")
         return redirect(url_for('feed'))
 
     sql = """INSERT INTO challenge_completion (fresher_id, challenge_id) VALUES (%s, %s)"""
-    params = (fresher_id, challenge_id)
+    execute_modify(sql, (fresher_id, challenge_id))
 
-    try:
-        execute_modify(sql, params)
-        
-        update_fresher_sql = """UPDATE fresher_profile SET completed_challenges = COALESCE(completed_challenges || ',', '') || %s WHERE id = %s"""
-        execute_modify(update_fresher_sql, (challenge_id, fresher_id))
+    update_points_sql = """
+    UPDATE fresher_profile
+    SET points = points + (SELECT points_awarded FROM challenge_post WHERE id = %s)
+    WHERE id = %s
+    """
+    execute_modify(update_points_sql, (challenge_id, fresher_id))
 
-    except Exception as e:
-        flash(f'Error: {str(e)}', 'error')
-
+    flash("Challenge marked complete and points updated!", "success")
     return redirect(url_for('feed'))
 
 def get_fresher_id(username):

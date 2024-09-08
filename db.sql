@@ -1,9 +1,9 @@
-CREATE TABLE tutor_group (
+CREATE TABLE IF NOT EXISTS tutor_group (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL
 );
 
-CREATE TABLE fresher_profile (
+CREATE TABLE IF NOT EXISTS fresher_profile (
     id SERIAL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE fresher_profile (
     points INTEGER DEFAULT 0
 );
 
-CREATE TABLE tutor_profile (
+CREATE TABLE IF NOT EXISTS tutor_profile (
     id SERIAL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
@@ -30,17 +30,17 @@ CREATE TABLE tutor_profile (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE challenge_post (
+CREATE TABLE IF NOT EXISTS challenge_post (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT,
     deadline TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(50) DEFAULT 'incomplete',
+    status VARCHAR(50) DEFAULT 'incomplete' CHECK (status IN ('incomplete', 'complete')),
     points_awarded INTEGER DEFAULT 0
 );
 
-CREATE TABLE challenge_completion (
+CREATE TABLE IF NOT EXISTS challenge_completion (
     id SERIAL PRIMARY KEY,
     fresher_id INTEGER REFERENCES fresher_profile(id),
     challenge_id INTEGER REFERENCES challenge_post(id),
