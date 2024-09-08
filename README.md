@@ -49,7 +49,10 @@ flask run
 - Complete tutor profile.
 - View & create challanges through feed.
 - View your own profile.
-- Authorization to mark challanges as completed for freshers in own (tutor) group.
+- Authorization to mark challenges as completed for freshers in own (tutor) group.
+
+## Note:
+For full feature exploration, please create a tutor account and at least one fresher account assigned to the same (tutor) group. Then create challenges via tutor profile and mark completion for freshers accordingly.
   
 ## Contact
 For any inquiries please contact niki.pouladi@helsinki.fi.
